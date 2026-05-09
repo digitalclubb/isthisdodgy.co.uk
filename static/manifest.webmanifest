@@ -1,0 +1,17 @@
+{
+	"name": "Is This Dodgy?",
+	"short_name": "isthisdodgy",
+	"description": "Paste a link, email, phone number, or message and get a calm plain-English answer about whether it looks dodgy.",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#fafaf7",
+	"theme_color": "#0b132b",
+	"icons": [
+		{
+			"src": "/favicon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml",
+			"purpose": "any maskable"
+		}
+	]
+}

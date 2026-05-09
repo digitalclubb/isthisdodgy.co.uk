@@ -1,0 +1,196 @@
+:root {
+	--ink: #0b132b;
+	--ink-soft: #3a4357;
+	--ink-mute: #6c7589;
+	--paper: #fafaf7;
+	--paper-2: #f1efe7;
+	--line: #e1ddd0;
+	--accent: #c9933b;
+	--safe: #2d6a4f;
+	--safe-bg: #e7f1eb;
+	--caution: #a86a1f;
+	--caution-bg: #fbf1dd;
+	--suspicious: #b94e1d;
+	--suspicious-bg: #fce6dc;
+	--dodgy: #9b1c1c;
+	--dodgy-bg: #fae3e3;
+	--radius: 14px;
+	--radius-lg: 22px;
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-3: 12px;
+	--space-4: 16px;
+	--space-5: 24px;
+	--space-6: 32px;
+	--space-7: 48px;
+	--space-8: 64px;
+	--font-sans:
+		-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', Arial,
+		sans-serif;
+	--font-display: ui-serif, 'Iowan Old Style', 'Apple Garamond', Georgia, serif;
+	--shadow-sm: 0 1px 2px rgba(11, 19, 43, 0.06);
+	--shadow-md: 0 8px 30px rgba(11, 19, 43, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--ink: #f4f1e8;
+		--ink-soft: #d3cdbc;
+		--ink-mute: #9a9684;
+		--paper: #14171f;
+		--paper-2: #1c2030;
+		--line: #2a2f40;
+		--accent: #f6c453;
+		--safe: #7fc99c;
+		--safe-bg: #1d2c25;
+		--caution: #e2b56b;
+		--caution-bg: #2c2517;
+		--suspicious: #ec8e69;
+		--suspicious-bg: #2e1f17;
+		--dodgy: #ee8a8a;
+		--dodgy-bg: #2d1717;
+		--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+		--shadow-md: 0 8px 30px rgba(0, 0, 0, 0.4);
+	}
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	font-size: 17px;
+	-webkit-text-size-adjust: 100%;
+	text-rendering: optimizeLegibility;
+}
+
+body {
+	background: var(--paper);
+	color: var(--ink);
+	font-family: var(--font-sans);
+	line-height: 1.55;
+	min-height: 100dvh;
+	display: flex;
+	flex-direction: column;
+}
+
+main {
+	flex: 1;
+	width: 100%;
+	max-width: 720px;
+	margin: 0 auto;
+	padding: var(--space-5) var(--space-4) var(--space-7);
+}
+
+.skip {
+	position: absolute;
+	left: -9999px;
+}
+.skip:focus {
+	left: var(--space-3);
+	top: var(--space-3);
+	background: var(--ink);
+	color: var(--paper);
+	padding: var(--space-2) var(--space-3);
+	border-radius: 8px;
+	z-index: 100;
+}
+
+header.site {
+	width: 100%;
+	max-width: 720px;
+	margin: 0 auto;
+	padding: var(--space-4) var(--space-4) 0;
+}
+
+.brand {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	color: var(--ink);
+	text-decoration: none;
+	font-weight: 600;
+	font-size: 1rem;
+	letter-spacing: -0.01em;
+}
+
+.brand-mark {
+	display: inline-grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 8px;
+	background: var(--ink);
+	color: var(--accent);
+	font-weight: 700;
+}
+
+.brand-tld {
+	color: var(--ink-mute);
+	font-weight: 400;
+}
+
+footer.site {
+	width: 100%;
+	max-width: 720px;
+	margin: 0 auto;
+	padding: var(--space-6) var(--space-4) var(--space-7);
+	color: var(--ink-mute);
+	font-size: 0.9rem;
+	text-align: center;
+}
+footer.site nav {
+	display: flex;
+	gap: var(--space-5);
+	justify-content: center;
+	margin-bottom: var(--space-3);
+	flex-wrap: wrap;
+}
+footer.site a {
+	color: var(--ink-soft);
+	text-decoration: none;
+}
+footer.site a:hover {
+	text-decoration: underline;
+}
+.disclaimer {
+	margin: 0;
+	font-size: 0.82rem;
+}
+
+a {
+	color: var(--ink);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+}
+a:hover {
+	text-decoration-thickness: 2px;
+}
+
+button {
+	font: inherit;
+	cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.fade-in {
+		animation: fade-in 240ms ease-out both;
+	}
+}
+@keyframes fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
