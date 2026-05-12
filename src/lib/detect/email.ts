@@ -1,6 +1,6 @@
 import { DISPOSABLE_EMAIL_DOMAINS, FREE_EMAIL_PROVIDERS } from './data/disposable-emails.ts';
 import { UK_IMPERSONATED_BRANDS } from './data/uk-brands.ts';
-import { officialDomain, officialEmailDomainReason } from './data/uk-official.ts';
+import { type OfficialOrg, officialDomain, officialEmailDomainReason } from './data/uk-official.ts';
 import type { Reason } from './verdict.ts';
 
 const VALID_EMAIL_RE = /^[a-z0-9._%+-]+@([a-z0-9-]+(?:\.[a-z0-9-]+)+)$/i;
@@ -9,6 +9,10 @@ export type EmailCheckResult = {
 	reasons: Reason[];
 	domain: string | null;
 	normalised: string;
+	// Set when the address is on a known official UK organisation domain. A
+	// scammer can't send from such a domain, so the domain settles it: per-address
+	// reputation lookups (IPQS / EmailRep / StopForumSpam) are skipped.
+	official?: OfficialOrg;
 };
 
 export function checkEmail(input: string): EmailCheckResult {
@@ -78,7 +82,7 @@ export function checkEmail(input: string): EmailCheckResult {
 		});
 	}
 
-	return { reasons, domain, normalised: value };
+	return { reasons, domain, normalised: value, official };
 }
 
 function detectBrandFromEmail(email: string, domain: string): string | null {

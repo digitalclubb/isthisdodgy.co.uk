@@ -109,21 +109,25 @@ async function runEmail(value: string): Promise<Verdict> {
 		});
 	}
 
-	const specs: EnricherSpec[] = ENRICHERS_DISABLED
-		? []
-		: [
-				{
-					name: 'emailrep',
-					timeoutMs: 2500,
-					run: (s) => emailrepEnricher(heuristic.normalised, s)
-				},
-				{
-					name: 'stop-forum-spam',
-					timeoutMs: 2000,
-					run: (s) => stopForumSpamEnricher(heuristic.normalised, s)
-				},
-				{ name: 'ipqs', timeoutMs: 3500, run: (s) => ipqsEmailEnricher(heuristic.normalised, s) }
-			];
+	// On a known official domain the domain itself settles it: a scammer can't
+	// send from @gov.uk, so per-address reputation lookups add only noise (a
+	// non-existent mailbox on a real domain can score "high risk").
+	const specs: EnricherSpec[] =
+		ENRICHERS_DISABLED || heuristic.official
+			? []
+			: [
+					{
+						name: 'emailrep',
+						timeoutMs: 2500,
+						run: (s) => emailrepEnricher(heuristic.normalised, s)
+					},
+					{
+						name: 'stop-forum-spam',
+						timeoutMs: 2000,
+						run: (s) => stopForumSpamEnricher(heuristic.normalised, s)
+					},
+					{ name: 'ipqs', timeoutMs: 3500, run: (s) => ipqsEmailEnricher(heuristic.normalised, s) }
+				];
 	const results = await runEnrichers(specs);
 
 	const reasons: Reason[] = [...heuristic.reasons];
@@ -135,7 +139,8 @@ async function runEmail(value: string): Promise<Verdict> {
 
 	return buildVerdict('email', reasons, {
 		normalised: heuristic.normalised,
-		sources: sourceList(['emailrep', 'stop-forum-spam', 'ipqs'], results),
+		// Only list a source if we actually attempted it.
+		sources: specs.length > 0 ? sourceList(['emailrep', 'stop-forum-spam', 'ipqs'], results) : [],
 		meta
 	});
 }
