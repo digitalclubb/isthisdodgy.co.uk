@@ -50,12 +50,29 @@ export const VERDICT_LABEL: Record<VerdictLevel, string> = {
 	dodgy: 'Likely dodgy'
 };
 
+// Default summaries, used when the verdict comes from weighted signals rather
+// than an exact named scam pattern. Kept deliberately measured.
 export const VERDICT_SUMMARY: Record<VerdictLevel, string> = {
 	safe: "We didn't spot anything obviously dodgy. Stay alert if anything feels off.",
-	caution: 'Some things look unusual. Take a moment before you act.',
-	suspicious: "We've seen patterns like this used in scams. Be very careful.",
-	dodgy: 'This matches well-known scam patterns. We recommend not engaging.'
+	caution: 'A few things here look a bit off. Take a moment before you act.',
+	suspicious: 'Several things here look like the tricks scammers use. Be careful.',
+	dodgy: "This has several warning signs we see in scams. We wouldn't engage with it."
 };
+
+// Stronger wording, used only when we matched a known, named scam pattern and
+// can say so honestly.
+const VERDICT_SUMMARY_PATTERN: Partial<Record<VerdictLevel, string>> = {
+	suspicious: 'This looks a lot like a known scam pattern. Be careful.',
+	dodgy: "This matches a known scam pattern. We wouldn't engage with it."
+};
+
+function summaryFor(level: VerdictLevel, hasPattern: boolean): string {
+	if (hasPattern) {
+		const patterned = VERDICT_SUMMARY_PATTERN[level];
+		if (patterned) return patterned;
+	}
+	return VERDICT_SUMMARY[level];
+}
 
 export function levelFromScore(score: number): VerdictLevel {
 	if (score >= 60) return 'dodgy';
@@ -80,14 +97,17 @@ export function buildVerdict(
 ): Verdict {
 	const score = reasons.reduce((acc, r) => acc + r.weight, 0);
 	const level = options.forcedLevel ?? levelFromScore(score);
-	// Stable secondary sort by source name so ties produce deterministic UI.
+	// On a risky verdict, lead with the most alarming reason. On a safe verdict,
+	// lead with the most reassuring one (the biggest negative weight). Stable
+	// secondary sort by source name so ties produce deterministic UI.
+	const dir = level === 'safe' ? 1 : -1;
 	const sortedReasons = [...reasons]
-		.sort((a, b) => b.weight - a.weight || a.source.localeCompare(b.source))
+		.sort((a, b) => dir * (a.weight - b.weight) || a.source.localeCompare(b.source))
 		.slice(0, 4);
 	return {
 		level,
 		headline: VERDICT_LABEL[level],
-		summary: VERDICT_SUMMARY[level],
+		summary: summaryFor(level, Boolean(options.pattern)),
 		reasons: sortedReasons,
 		inputType,
 		normalised: options.normalised,

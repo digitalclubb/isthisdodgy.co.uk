@@ -1,4 +1,5 @@
 import { type PhoneNumber, parsePhoneNumberFromString } from 'libphonenumber-js';
+import { type OfficialOrg, officialPhone, officialPhoneReason } from './data/uk-official.ts';
 import type { Reason } from './verdict.ts';
 
 // All checks operate on the National Significant Number, i.e. the +44 prefix
@@ -40,6 +41,8 @@ export type PhoneCheckResult = {
 	reasons: Reason[];
 	insight: PhoneInsight;
 	normalised: string;
+	// Set when the number matches a known official UK organisation line.
+	official?: OfficialOrg;
 };
 
 export function checkPhone(input: string): PhoneCheckResult {
@@ -58,6 +61,19 @@ export function checkPhone(input: string): PhoneCheckResult {
 			],
 			insight,
 			normalised: trimmed
+		};
+	}
+
+	// Known official line: say so plainly and stop. The premium-rate and similar
+	// checks below don't apply to these numbers, and the engine skips the IPQS
+	// lookup (a heavily spoofed official number can pick up spurious reports).
+	const official = officialPhone(insight.e164);
+	if (official) {
+		return {
+			reasons: [{ text: officialPhoneReason(official), weight: -30, source: 'heuristic' }],
+			insight,
+			normalised: insight.e164,
+			official
 		};
 	}
 

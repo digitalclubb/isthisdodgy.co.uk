@@ -2,6 +2,7 @@ import { parse as parseHost } from 'tldts';
 import { GENERIC_SIGNALS } from './data/scam-patterns.ts';
 import { HIGH_RISK_TLDS } from './data/suspicious-tlds.ts';
 import { UK_IMPERSONATED_BRANDS } from './data/uk-brands.ts';
+import { officialDomain, officialDomainReason } from './data/uk-official.ts';
 import type { Reason } from './verdict.ts';
 
 const IPV4_HOST_RE = /^\d{1,3}(\.\d{1,3}){3}$/;
@@ -151,6 +152,15 @@ export function checkUrl(input: string): UrlCheckResult {
 		reasons.push({
 			text: brandFlag.reason,
 			weight: 55,
+			source: 'heuristic'
+		});
+	}
+
+	const official = officialDomain(parsed.hostname);
+	if (official) {
+		reasons.push({
+			text: officialDomainReason(official),
+			weight: -30,
 			source: 'heuristic'
 		});
 	}

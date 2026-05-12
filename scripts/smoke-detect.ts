@@ -2,10 +2,13 @@ process.env.DISABLE_ENRICHERS = '1';
 
 import { detect } from '../src/lib/detect/index.ts';
 
+type Level = 'safe' | 'caution' | 'suspicious' | 'dodgy';
+
 const SAMPLES: {
 	label: string;
 	input: string;
-	expectMin: 'safe' | 'caution' | 'suspicious' | 'dodgy';
+	expectMin: Level;
+	expectMax?: Level;
 }[] = [
 	{
 		label: 'Royal Mail fee text',
@@ -30,7 +33,12 @@ const SAMPLES: {
 	},
 	{ label: 'Punycode lookalike', input: 'https://xn--paypl-9wa.com/login', expectMin: 'caution' },
 	{ label: 'IP host', input: 'http://93.184.216.34/login', expectMin: 'suspicious' },
-	{ label: 'Real BBC URL', input: 'https://www.bbc.co.uk/news', expectMin: 'safe' },
+	{
+		label: 'Real BBC URL',
+		input: 'https://www.bbc.co.uk/news',
+		expectMin: 'safe',
+		expectMax: 'safe'
+	},
 	{ label: 'UK premium 09 number', input: '09011234567', expectMin: 'suspicious' },
 	{ label: 'UK 070 number', input: '0700 900123', expectMin: 'suspicious' },
 	{ label: 'UK 0844 service-rate', input: '0844 123 4567', expectMin: 'caution' },
@@ -42,6 +50,25 @@ const SAMPLES: {
 		label: 'Friendly text',
 		input: 'Hey, are you free for a coffee Saturday afternoon?',
 		expectMin: 'safe'
+	},
+	// Positive allow-list: these must land squarely on "safe".
+	{
+		label: 'Official Action Fraud number',
+		input: '0300 123 2040',
+		expectMin: 'safe',
+		expectMax: 'safe'
+	},
+	{
+		label: 'Official GOV.UK URL',
+		input: 'https://www.gov.uk/check-state-pension',
+		expectMin: 'safe',
+		expectMax: 'safe'
+	},
+	{
+		label: 'Official HMRC email domain',
+		input: 'alerts@hmrc.gov.uk',
+		expectMin: 'safe',
+		expectMax: 'safe'
 	}
 ];
 
@@ -50,12 +77,18 @@ let failures = 0;
 
 for (const s of SAMPLES) {
 	const v = await detect(s.input);
-	const ok = RANK[v.level] >= RANK[s.expectMin];
+	const ok =
+		RANK[v.level] >= RANK[s.expectMin] && (!s.expectMax || RANK[v.level] <= RANK[s.expectMax]);
 	const marker = ok ? '✓' : '✗';
 	console.log(`${marker} [${v.level.padEnd(10)}] ${s.label}`);
 	if (!ok) {
 		failures++;
-		console.log(`    expected at least ${s.expectMin}, got ${v.level}`);
+		const range = s.expectMax
+			? s.expectMin === s.expectMax
+				? s.expectMin
+				: `${s.expectMin}..${s.expectMax}`
+			: `at least ${s.expectMin}`;
+		console.log(`    expected ${range}, got ${v.level}`);
 		console.log(`    headline: ${v.headline}`);
 		console.log(`    reasons: ${v.reasons.map((r) => `${r.weight}:${r.text}`).join(' | ')}`);
 	}

@@ -1,5 +1,6 @@
 import { DISPOSABLE_EMAIL_DOMAINS, FREE_EMAIL_PROVIDERS } from './data/disposable-emails.ts';
 import { UK_IMPERSONATED_BRANDS } from './data/uk-brands.ts';
+import { officialDomain, officialEmailDomainReason } from './data/uk-official.ts';
 import type { Reason } from './verdict.ts';
 
 const VALID_EMAIL_RE = /^[a-z0-9._%+-]+@([a-z0-9-]+(?:\.[a-z0-9-]+)+)$/i;
@@ -53,6 +54,15 @@ export function checkEmail(input: string): EmailCheckResult {
 		reasons.push({
 			text: brandImpersonation,
 			weight: 60,
+			source: 'heuristic'
+		});
+	}
+
+	const official = officialDomain(domain);
+	if (official) {
+		reasons.push({
+			text: officialEmailDomainReason(official),
+			weight: -30,
 			source: 'heuristic'
 		});
 	}

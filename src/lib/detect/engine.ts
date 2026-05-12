@@ -1,4 +1,5 @@
 import { classifyInput } from './classify.ts';
+import { officialPhoneAdvice } from './data/uk-official.ts';
 import { checkEmail } from './email.ts';
 import { dnsEnricher } from './enrich/dns.ts';
 import { emailrepEnricher } from './enrich/emailrep.ts';
@@ -141,8 +142,10 @@ async function runEmail(value: string): Promise<Verdict> {
 
 async function runPhone(value: string): Promise<Verdict> {
 	const heuristic = checkPhone(value);
+	// Skip the IPQS lookup for a recognised official line: it adds no value and a
+	// heavily spoofed official number can collect spurious abuse reports.
 	const specs: EnricherSpec[] =
-		ENRICHERS_DISABLED || !heuristic.normalised.startsWith('+')
+		ENRICHERS_DISABLED || heuristic.official || !heuristic.normalised.startsWith('+')
 			? []
 			: [
 					{
@@ -162,7 +165,9 @@ async function runPhone(value: string): Promise<Verdict> {
 
 	return buildVerdict('phone', reasons, {
 		normalised: heuristic.normalised,
-		sources: sourceList(['ipqs'], results),
+		advice: heuristic.official ? officialPhoneAdvice(heuristic.official) : undefined,
+		// Only list a source if we actually attempted it.
+		sources: specs.length > 0 ? sourceList(['ipqs'], results) : [],
 		meta
 	});
 }
